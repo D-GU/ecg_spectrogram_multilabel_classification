@@ -77,6 +77,7 @@ class ResNet(pl.LightningModule):
         self.fc = nn.Linear(256 * 4, num_classes)
 
         self.learning_rate = float(os.getenv("learning_rate"))
+        self.batch_size = int(os.getenv("batch_size"))
 
     def forward(self, x):
         x = self.conv1(x)
@@ -131,36 +132,36 @@ class ResNet(pl.LightningModule):
     def train_dataloader(self):
         train_dataset = SpectrogramDataset(X, y)
         return DataLoader(dataset=train_dataset,
-                          batch_size=os.getenv("batch_size"),
+                          batch_size=self.batch_size,
                           num_workers=5,
                           shuffle=True)
 
-    def test_dataloader(self):
-        test_dataset = SpectrogramDataset(X_test, y_test)
-        return DataLoader(dataset=test_dataset,
-                          batch_size=os.getenv("batch_size"),
-                          num_workers=5,
-                          shuffle=True)
-
-    def test_step(self, batch, batch_idx):
-        inputs, labels = batch
-        inputs = inputs.permute(0, 2, 1)
-        labels = labels.float()
-
-        # fw
-        outputs = self(inputs)
-        loss = F.multilabel_soft_margin_loss(outputs, labels)
-
-        return {"test_loss": loss}
-
-    def test_epoch_end(self, outputs):
-        avg_loss = torch.stack([x["test_loss"] for x in outputs]).mean()
-        return {"test_avg_loss": avg_loss}
+    # def test_dataloader(self):
+    #     test_dataset = SpectrogramDataset(X_test, y_test)
+    #     return DataLoader(dataset=test_dataset,
+    #                       batch_size=self.batch_size,
+    #                       num_workers=5,
+    #                       shuffle=True)
+    #
+    # def test_step(self, batch, batch_idx):
+    #     inputs, labels = batch
+    #     inputs = inputs.permute(0, 2, 1)
+    #     labels = labels.float()
+    #
+    #     # fw
+    #     outputs = self(inputs)
+    #     loss = F.multilabel_soft_margin_loss(outputs, labels)
+    #
+    #     return {"test_loss": loss}
+    #
+    # def test_epoch_end(self, outputs):
+    #     avg_loss = torch.stack([x["test_loss"] for x in outputs]).mean()
+    #     return {"test_avg_loss": avg_loss}
 
     def val_dataloader(self):
         validation_dataset = SpectrogramDataset(x_val, y_val)
         return DataLoader(dataset=validation_dataset,
-                          batch_size=os.getenv("batch_size"),
+                          batch_size=self.batch_size,
                           num_workers=5,
                           shuffle=False)
 
@@ -175,10 +176,10 @@ class ResNet(pl.LightningModule):
 
         return {"val_loss": loss}
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x["val_loss"] for x in outputs]).mean()
         return {"val_loss": avg_loss}
 
 
-def ResNet50(in_channels=2, num_classes=os.getenv("num_classes")):
+def ResNet50(in_channels=2, num_classes=int(os.getenv("num_classes"))):
     return ResNet(Block, [4, 6, 36, 4], in_channels, num_classes)

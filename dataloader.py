@@ -47,10 +47,11 @@ class SpectrogramDataset(Dataset):
         x = self.dataset_path_x[idx]
         y = self.dataset_path_y[idx]
 
+        print(x)
         image = cv2.imread(x)
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        label = x.split('/')[-2]
+        # label = x.split('/')[-2]
 
         # if self.transform is not None:
         #     image = self.transform(image=image)["image"]
