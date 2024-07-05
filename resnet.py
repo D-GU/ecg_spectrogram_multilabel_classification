@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from dataloader import SpectrogramDataset
 
-from dataset_split import train_test_split, get_unshuffled_directory
+from dataset_spliter import train_test_split, get_unshuffled_directory
 
 load_dotenv()
 

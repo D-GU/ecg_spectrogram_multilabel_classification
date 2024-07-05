@@ -7,7 +7,7 @@ import numpy as np
 from dotenv import load_dotenv
 from torch.utils.data import Dataset
 
-from dataset_split import train_test_split
+from dataset_spliter import train_test_split
 
 
 class ParametersDataset(Dataset):

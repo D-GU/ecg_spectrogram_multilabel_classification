@@ -1,7 +1,6 @@
 import os
 
 import numpy as np
-from dotenv import load_dotenv
 
 
 def get_unshuffled_directory(path: str):
