@@ -6,4 +6,4 @@ import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":
-    get_data(PATH_TO_DATA)
+    print(2)
