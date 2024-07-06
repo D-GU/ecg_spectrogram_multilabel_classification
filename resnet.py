@@ -19,6 +19,7 @@ x_val, y_val = os.getenv("val_x_path"), np.load(os.getenv("val_y_path"), allow_p
 
 # get unshuffled list of picture paths
 x_val = get_unshuffled_directory(x_val)
+x_val = [os.path.join(os.getenv("val_x_path"), x) for x in x_val]
 
 
 class Block(nn.Module):
@@ -120,6 +121,8 @@ class ResNet(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         inputs, labels = batch
+
+        inputs = inputs[0]
         inputs = inputs.permute(0, 2, 1)
         labels = labels.float()
 
@@ -167,6 +170,8 @@ class ResNet(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         inputs, labels = batch
+
+        inputs_ = inputs[0]
         inputs = inputs.permute(0, 2, 1)
         labels = labels.float()
 
