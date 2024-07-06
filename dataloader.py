@@ -56,4 +56,4 @@ class SpectrogramDataset(Dataset):
         # if self.transform is not None:
         #     image = self.transform(image=image)["image"]
 
-        return x, y
+        return image, y

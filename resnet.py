@@ -122,7 +122,7 @@ class ResNet(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         inputs, labels = batch
 
-        inputs = inputs[0]
+        inputs = inputs[1]
         inputs = inputs.permute(0, 2, 1)
         labels = labels.float()
 
@@ -168,7 +168,7 @@ class ResNet(pl.LightningModule):
                           num_workers=5,
                           shuffle=False)
 
-    def validation_step(self, batch, batch_idx):
+    def on_validation_step(self, batch, batch_idx):
         inputs, labels = batch
 
         inputs_ = inputs[0]
