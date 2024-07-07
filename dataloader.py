@@ -48,6 +48,8 @@ class SpectrogramDataset(Dataset):
         y = self.dataset_path_y[idx]
 
         image = cv2.imread(x)
+        image = torch.tensor(image)
+        image = image[:3]
 
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 

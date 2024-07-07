@@ -64,25 +64,26 @@ class ResNet(pl.LightningModule):
     def __init__(self, Block, layers, in_channels, num_classes):
         super(ResNet, self).__init__()
         self.in_channels = 2
-        self.conv1 = nn.Conv1d(in_channels, 2, kernel_size=1, stride=1, padding=0)
-        self.bn1 = nn.BatchNorm1d(2)
+        self.conv2 = nn.Conv2d(in_channels, 8, kernel_size=(2, 2), stride=(1, 1), padding=0)
+        self.bn2 = nn.BatchNorm2d(8)
         self.relu = F.relu6
-        self.maxpool = nn.MaxPool1d(kernel_size=1, stride=1, padding=0)
+        self.maxpool = nn.MaxPool2d(kernel_size=(2, 2), stride=(1, 1), padding=0)
 
         self.layer1 = self.make_layer(Block, layers[0], out_channels=32, stride=1)
         self.layer2 = self.make_layer(Block, layers[1], out_channels=64, stride=1)
         self.layer3 = self.make_layer(Block, layers[2], out_channels=128, stride=1)
         self.layer4 = self.make_layer(Block, layers[3], out_channels=256, stride=1)
 
-        self.avgpool = nn.AdaptiveAvgPool1d(1)
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Linear(256 * 4, num_classes)
+        self.flatten = nn.Flatten(3, 1)
 
         self.learning_rate = float(os.getenv("learning_rate"))
         self.batch_size = int(os.getenv("batch_size"))
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
         x = self.relu(x)
         x = self.maxpool(x)
 
@@ -122,8 +123,9 @@ class ResNet(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         inputs, labels = batch
 
-        inputs = inputs[1]
-        inputs = inputs.permute(0, 2, 1)
+        # inputs = inputs[1]
+        # inputs = inputs.permute(0, 2, 1)
+        inputs = inputs.float()
         labels = labels.float()
 
         # fw
@@ -171,8 +173,10 @@ class ResNet(pl.LightningModule):
     def on_validation_step(self, batch, batch_idx):
         inputs, labels = batch
 
-        inputs_ = inputs[0]
-        inputs = inputs.permute(0, 2, 1)
+        # inputs_ = inputs[0]
+        # inputs = inputs.permute(0, 2, 1)
+
+        inputs = inputs.float()
         labels = labels.float()
 
         # fw
@@ -186,5 +190,5 @@ class ResNet(pl.LightningModule):
         return {"val_loss": avg_loss}
 
 
-def ResNet50(in_channels=2, num_classes=int(os.getenv("num_classes"))):
+def ResNet50(in_channels=3, num_classes=int(os.getenv("num_classes"))):
     return ResNet(Block, [4, 6, 36, 4], in_channels, num_classes)
