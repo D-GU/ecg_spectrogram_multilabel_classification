@@ -26,12 +26,13 @@ class Block(nn.Module):
     def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
         super(Block, self).__init__()
         self.expansion = 4
-        self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
-        self.bn1 = nn.BatchNorm1d(out_channels)
-        self.conv2 = nn.Conv1d(out_channels, out_channels, kernel_size=1, stride=1, padding=0)
-        self.bn2 = nn.BatchNorm1d(out_channels)
-        self.conv3 = nn.Conv1d(out_channels, out_channels * self.expansion, kernel_size=1, stride=1, padding=0)
-        self.bn3 = nn.BatchNorm1d(out_channels * self.expansion)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(2, 2), stride=(1, 1), padding=0)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=(4, 4), stride=(1, 1), padding=0)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.conv3 = nn.Conv2d(out_channels, out_channels * self.expansion, kernel_size=(2, 2), stride=(1, 1),
+                               padding=0)
+        self.bn3 = nn.BatchNorm2d(out_channels * self.expansion)
         self.relu = F.relu6
         self.identity_downsample = identity_downsample
 
@@ -64,8 +65,8 @@ class ResNet(pl.LightningModule):
     def __init__(self, Block, layers, in_channels, num_classes):
         super(ResNet, self).__init__()
         self.in_channels = 2
-        self.conv2 = nn.Conv2d(in_channels, 8, kernel_size=(2, 2), stride=(1, 1), padding=0)
-        self.bn2 = nn.BatchNorm2d(8)
+        self.conv = nn.Conv2d(in_channels, 8, kernel_size=(2, 2), stride=(1, 1), padding=0)
+        self.bn = nn.BatchNorm2d(2)
         self.relu = F.relu6
         self.maxpool = nn.MaxPool2d(kernel_size=(2, 2), stride=(1, 1), padding=0)
 
@@ -82,8 +83,8 @@ class ResNet(pl.LightningModule):
         self.batch_size = int(os.getenv("batch_size"))
 
     def forward(self, x):
-        x = self.conv2(x)
-        x = self.bn2(x)
+        x = self.conv(x)
+        x = self.bn(x)
         x = self.relu(x)
         x = self.maxpool(x)
 
@@ -104,7 +105,7 @@ class ResNet(pl.LightningModule):
 
         if stride != 1 or self.in_channels != out_channels * 4:
             identity_downsample = nn.Sequential(
-                nn.Conv1d(self.in_channels, out_channels * 4, kernel_size=1, stride=stride),
+                nn.Conv2d(self.in_channels, out_channels * 4, kernel_size=(2, 2), stride=stride),
                 nn.BatchNorm1d(out_channels * 4)
             )
 
