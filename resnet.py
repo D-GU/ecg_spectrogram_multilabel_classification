@@ -25,13 +25,13 @@ x_val = [os.path.join(os.getenv("val_x_path"), x) for x in x_val]
 class Block(nn.Module):
     def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
         super(Block, self).__init__()
-        self.expansion = 4
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(2, 2), stride=(1, 1), padding=0)
+        self.expansion = 4  # Multiplier to number of in-channels so number of out blocks in self.expansion * in-channels
+
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
         self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=(4, 4), stride=(1, 1), padding=0)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride, padding=0)
         self.bn2 = nn.BatchNorm2d(out_channels)
-        self.conv3 = nn.Conv2d(out_channels, out_channels * self.expansion, kernel_size=(2, 2), stride=(1, 1),
-                               padding=0)
+        self.conv3 = nn.Conv2d(out_channels, out_channels * self.expansion, kernel_size=1, stride=1, padding=0)
         self.bn3 = nn.BatchNorm2d(out_channels * self.expansion)
         self.relu = F.relu6
         self.identity_downsample = identity_downsample
@@ -61,22 +61,21 @@ class Block(nn.Module):
 
 class ResNet(pl.LightningModule):
     # layers is a list that contains how many times we should use Block
-
     def __init__(self, Block, layers, in_channels, num_classes):
         super(ResNet, self).__init__()
-        self.in_channels = 2
-        self.conv = nn.Conv2d(in_channels, 8, kernel_size=(2, 2), stride=(1, 1), padding=0)
-        self.bn = nn.BatchNorm2d(2)
+        self.in_channels = 64
+        self.conv = nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3)
+        self.bn = nn.BatchNorm2d(64)
         self.relu = F.relu6
-        self.maxpool = nn.MaxPool2d(kernel_size=(2, 2), stride=(1, 1), padding=0)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
-        self.layer1 = self.make_layer(Block, layers[0], out_channels=32, stride=1)
-        self.layer2 = self.make_layer(Block, layers[1], out_channels=64, stride=1)
-        self.layer3 = self.make_layer(Block, layers[2], out_channels=128, stride=1)
-        self.layer4 = self.make_layer(Block, layers[3], out_channels=256, stride=1)
+        self.layer1 = self.make_layer(Block, layers[0], out_channels=64, stride=1)
+        self.layer2 = self.make_layer(Block, layers[1], out_channels=128, stride=2)
+        self.layer3 = self.make_layer(Block, layers[2], out_channels=256, stride=2)
+        self.layer4 = self.make_layer(Block, layers[3], out_channels=512, stride=2)
 
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Linear(256 * 4, num_classes)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(512 * 4, num_classes)
         self.flatten = nn.Flatten(3, 1)
 
         self.learning_rate = float(os.getenv("learning_rate"))
@@ -105,7 +104,7 @@ class ResNet(pl.LightningModule):
 
         if stride != 1 or self.in_channels != out_channels * 4:
             identity_downsample = nn.Sequential(
-                nn.Conv2d(self.in_channels, out_channels * 4, kernel_size=(2, 2), stride=stride),
+                nn.Conv2d(self.in_channels, out_channels * 4, kernel_size=1, stride=stride),
                 nn.BatchNorm1d(out_channels * 4)
             )
 
