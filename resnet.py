@@ -93,7 +93,7 @@ class ResNet(pl.LightningModule):
         x = self.layer4(x)
 
         x = self.avgpool(x)
-        x = x.reshape(x.shape[0], -1)
+        # x = x.reshape(x.shape[0], -1)
         x = self.fc(x)
 
         return x
@@ -105,7 +105,7 @@ class ResNet(pl.LightningModule):
         if stride != 1 or self.in_channels != out_channels * 4:
             identity_downsample = nn.Sequential(
                 nn.Conv2d(self.in_channels, out_channels * 4, kernel_size=1, stride=stride),
-                nn.BatchNorm1d(out_channels * 4)
+                nn.BatchNorm2d(out_channels * 4)
             )
 
         layers.append(Block(self.in_channels, out_channels, identity_downsample, stride))
@@ -123,8 +123,6 @@ class ResNet(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         inputs, labels = batch
 
-        # inputs = inputs[1]
-        # inputs = inputs.permute(0, 2, 1)
         inputs = inputs.float()
         labels = labels.float()
 
@@ -170,11 +168,8 @@ class ResNet(pl.LightningModule):
                           num_workers=5,
                           shuffle=False)
 
-    def on_validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx):
         inputs, labels = batch
-
-        # inputs_ = inputs[0]
-        # inputs = inputs.permute(0, 2, 1)
 
         inputs = inputs.float()
         labels = labels.float()
