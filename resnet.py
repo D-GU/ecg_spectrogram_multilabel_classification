@@ -80,6 +80,7 @@ class ResNet(pl.LightningModule):
 
         self.learning_rate = float(os.getenv("learning_rate"))
         self.batch_size = int(os.getenv("batch_size"))
+        self.validation_step_outputs = []
 
     def forward(self, x):
         x = self.conv(x)
@@ -178,10 +179,14 @@ class ResNet(pl.LightningModule):
         outputs = self(inputs)
         loss = F.multilabel_soft_margin_loss(outputs, labels)
 
+        self.validation_step_outputs.append(loss)
+
         return {"val_loss": loss}
 
-    def on_validation_end(self, outputs):
-        avg_loss = torch.stack([x["val_loss"] for x in outputs]).mean()
+    def on_validation_epoch_end(self):
+        avg_loss = torch.stack(self.validation_step_outputs).mean()
+        self.log("validation_epoch_average", avg_loss)
+        self.validation_step_outputs.clear()
         return {"val_loss": avg_loss}
 
 
