@@ -29,7 +29,7 @@ class Block(nn.Module):
 
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
         self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride, padding=0)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride, padding=1)
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.conv3 = nn.Conv2d(out_channels, out_channels * self.expansion, kernel_size=1, stride=1, padding=0)
         self.bn3 = nn.BatchNorm2d(out_channels * self.expansion)
@@ -76,7 +76,7 @@ class ResNet(pl.LightningModule):
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * 4, num_classes)
-        self.flatten = nn.Flatten(3, 1)
+        # self.flatten = nn.Flatten(3, 1)
 
         self.learning_rate = float(os.getenv("learning_rate"))
         self.batch_size = int(os.getenv("batch_size"))
@@ -93,7 +93,7 @@ class ResNet(pl.LightningModule):
         x = self.layer4(x)
 
         x = self.avgpool(x)
-        # x = x.reshape(x.shape[0], -1)
+        x = x.reshape(x.shape[0], -1)
         x = self.fc(x)
 
         return x
@@ -180,7 +180,7 @@ class ResNet(pl.LightningModule):
 
         return {"val_loss": loss}
 
-    def on_validation_epoch_end(self, outputs):
+    def on_validation_end(self, outputs):
         avg_loss = torch.stack([x["val_loss"] for x in outputs]).mean()
         return {"val_loss": avg_loss}
 
