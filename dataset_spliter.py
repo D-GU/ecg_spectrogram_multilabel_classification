@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+from dotenv import load_dotenv
 
 
 def get_unshuffled_directory(path: str):
@@ -27,9 +28,13 @@ def train_test_split(train_x_path: str, train_y_path: str):
         image_name = os.path.join(train_x_path, f"{image}.jpg")
 
         if image / (len(directory) - 1) > 0.8:
+            if sum(train_y_array[image - 1]) > 1:
+                continue
             test_x.append(image_name)
             test_y.append(train_y_array[image - 1])
         else:
+            if sum(train_y_array[image - 1]) > 1:
+                continue
             train_x.append(image_name)
             train_y.append(train_y_array[image - 1])
 
@@ -38,3 +43,4 @@ def train_test_split(train_x_path: str, train_y_path: str):
 
 if __name__ == "__main__":
     x, x_t, y, y_t = train_test_split(os.getenv("train_x_path"), os.getenv("train_y_path"))
+    print(len(x), len(x_t), len(y), len(y_t))
